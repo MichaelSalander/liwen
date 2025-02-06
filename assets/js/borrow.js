@@ -1,16 +1,26 @@
-// 假資料模擬
-const books = [
-    { isbn: "9781234567890", title: "書名A", status: "可借閱", history: [] },
-    { isbn: "9780987654321", title: "書名B", status: "漂流中", history: [] },
-    { isbn: "9785432109876", title: "書名C", status: "可借閱", history: [] }
-];
+let books = [];
+let storeName = "未知地點";
 
-const historyList = document.getElementById("historyList");
-const messageBox = document.getElementById("message");
-const isbnInput = document.getElementById("isbn");
+// 取得 URL 參數（地點 ID）
+const urlParams = new URLSearchParams(window.location.search);
+const locationId = urlParams.get("locationId");
+
+fetch('assets/data/books.json')
+    .then(res => res.json())
+    .then(data => {
+        const location = data.locations.find(loc => loc.id === locationId);
+        if (location) {
+            storeName = location.name;
+            books = location.books;
+            document.getElementById("storeName").textContent = `${storeName} - 借書/還書`;
+            updateHistoryList();
+        }
+    })
+    .catch(err => console.error('無法載入資料:', err));
 
 // 更新最近 5 次借還紀錄
 function updateHistoryList() {
+    const historyList = document.getElementById("historyList");
     historyList.innerHTML = "";
     const recentHistory = books
         .flatMap(book => book.history)
@@ -23,71 +33,3 @@ function updateHistoryList() {
         historyList.appendChild(li);
     });
 }
-
-// 顯示訊息
-function showMessage(message, type) {
-    messageBox.textContent = message;
-    messageBox.className = type === "success" ? "success" : "error";
-}
-
-// 借書功能
-document.getElementById("borrowButton").addEventListener("click", () => {
-    const isbn = isbnInput.value.trim();
-    if (!isbn) {
-        showMessage("請輸入或掃描 ISBN！", "error");
-        return;
-    }
-
-    const book = books.find(b => b.isbn === isbn);
-    if (book && book.status === "可借閱") {
-        book.status = "漂流中";
-        book.history.push({
-            timestamp: new Date().toLocaleString(),
-            action: "漂書",
-            location: "麗文書局",
-            title: book.title
-        });
-        showMessage(`成功借書：${book.title}！`, "success");
-        updateHistoryList();
-    } else if (book) {
-        showMessage(`書籍：${book.title} 已經漂流中！`, "error");
-    } else {
-        showMessage("找不到此 ISBN 的書籍！", "error");
-    }
-});
-
-// 還書功能
-document.getElementById("returnButton").addEventListener("click", () => {
-    const isbn = isbnInput.value.trim();
-    if (!isbn) {
-        showMessage("請輸入或掃描 ISBN！", "error");
-        return;
-    }
-
-    const book = books.find(b => b.isbn === isbn);
-    if (book && book.status === "漂流中") {
-        book.status = "可借閱";
-        book.history.push({
-            timestamp: new Date().toLocaleString(),
-            action: "還書",
-            location: "麗文書局",
-            title: book.title
-        });
-        showMessage(`成功還書：${book.title}！`, "success");
-        updateHistoryList();
-    } else if (book) {
-        showMessage(`書籍：${book.title} 並未漂流中！`, "error");
-    } else {
-        showMessage("找不到此 ISBN 的書籍！", "error");
-    }
-});
-
-// 模擬掃描二維碼
-document.getElementById("scanButton").addEventListener("click", () => {
-    const simulatedISBN = "9781234567890"; // 模擬掃描結果
-    isbnInput.value = simulatedISBN;
-    showMessage(`已掃描 ISBN：${simulatedISBN}`, "success");
-});
-
-// 初始化
-updateHistoryList();
