@@ -1,0 +1,45 @@
+{
+    "locations": [
+      {
+        "id": "1",
+        "name": "麗文書局",
+        "books": [
+          {
+            "isbn": "9781234567890",
+            "title": "書名A",
+            "author": "作者A",
+            "status": "可借閱",
+            "history": [
+              { "timestamp": "2025-01-01 10:00", "action": "漂書", "location": "麗文書局" },
+              { "timestamp": "2025-01-03 14:00", "action": "還書", "location": "誠品書店" }
+            ]
+          },
+          {
+            "isbn": "9780987654321",
+            "title": "書名B",
+            "author": "作者B",
+            "status": "漂流中",
+            "history": [
+              { "timestamp": "2025-01-02 15:30", "action": "漂書", "location": "麗文書局" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2",
+        "name": "誠品書店",
+        "books": [
+          {
+            "isbn": "9785432109876",
+            "title": "書名C",
+            "author": "作者C",
+            "status": "漂流中",
+            "history": [
+              { "timestamp": "2025-01-05 12:00", "action": "漂書", "location": "誠品書店" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+  

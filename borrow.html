@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>麗文書局 - 借書/還書</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>麗文書局 - 借書/還書</h1>
+        <input type="text" id="isbn" placeholder="請輸入或掃描 ISBN">
+        <button id="scanButton">掃描二維碼</button>
+        <button id="borrowButton">借書</button>
+        <button id="returnButton">還書</button>
+        <div id="message"></div>
+        <h2>最近 5 次借/還書紀錄</h2>
+        <ul id="historyList"></ul>
+    </div>
+    <script src="assets/js/borrow.js"></script>
+</body>
+</html>
