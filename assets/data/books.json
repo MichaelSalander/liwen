@@ -11,7 +11,7 @@
             "status": "可借閱",
             "history": [
               { "timestamp": "2025-01-01 10:00", "action": "漂書", "location": "麗文書局" },
-              { "timestamp": "2025-01-03 14:00", "action": "還書", "location": "誠品書店" }
+              { "timestamp": "2025-01-03 14:00", "action": "還書", "location": "達賢圖書館" }
             ]
           },
           {
@@ -27,7 +27,7 @@
       },
       {
         "id": "2",
-        "name": "誠品書店",
+        "name": "達賢圖書館",
         "books": [
           {
             "isbn": "9785432109876",
@@ -35,7 +35,7 @@
             "author": "作者C",
             "status": "漂流中",
             "history": [
-              { "timestamp": "2025-01-05 12:00", "action": "漂書", "location": "誠品書店" }
+              { "timestamp": "2025-01-05 12:00", "action": "漂書", "location": "達賢圖書館" }
             ]
           }
         ]
