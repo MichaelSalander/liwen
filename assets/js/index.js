@@ -1,42 +1,22 @@
-fetch('assets/data/books.json')
-    .then(res => res.json())
-    .then(data => {
-        const locationContainer = document.getElementById("locationContainer");
+const API_URL = "https://script.google.com/macros/s/AKfycbwMy_979smugB7YMwv_N8QgG2vfedud5vWMXZE1nioziDiPX7Dk7A8fOWUTIOQsbSMrzQ/exec";
 
-        data.locations.forEach(location => {
-            // 建立地點區塊
-            const locationDiv = document.createElement("div");
-            locationDiv.classList.add("location");
+document.addEventListener("DOMContentLoaded", function() {
+    fetch(`${API_URL}?action=getBooks`)
+        .then(res => res.json())
+        .then(data => {
+            const locationContainer = document.getElementById("locationContainer");
+            locationContainer.innerHTML = ""; // 清空列表
 
-            // 地點標題與借書/還書按鈕
-            const locationTitle = document.createElement("h2");
-            locationTitle.textContent = location.name;
-
-            const borrowLink = document.createElement("a");
-            borrowLink.href = `borrow.html?locationId=${location.id}`;
-            borrowLink.textContent = "進入借書/還書";
-            borrowLink.style.display = "block";
-            borrowLink.style.marginTop = "10px";
-
-            locationDiv.appendChild(locationTitle);
-            locationDiv.appendChild(borrowLink);
-
-            // 建立書籍清單
-            if (location.books.length > 0) {
-                const bookList = document.createElement("ul");
-                location.books.forEach(book => {
-                    const bookItem = document.createElement("li");
-                    bookItem.textContent = `書名：${book.title} (ISBN: ${book.isbn}) - 狀態：${book.status}`;
-                    bookList.appendChild(bookItem);
-                });
-                locationDiv.appendChild(bookList);
-            } else {
-                const noBooks = document.createElement("p");
-                noBooks.textContent = "目前無可借閱書籍。";
-                locationDiv.appendChild(noBooks);
-            }
-
-            locationContainer.appendChild(locationDiv);
-        });
-    })
-    .catch(err => console.error('無法載入資料:', err));
+            data.forEach(book => {
+                const bookItem = document.createElement("li");
+                bookItem.innerHTML = `
+                    <strong>${book.title}</strong> - ${book.author} 
+                    <br> ISBN: ${book.isbn} | 目前位置: ${book.location} 
+                    <br> 贈書者: ${book.donor} | <a href="${book.libraryLink}" target="_blank">圖書館連結</a>
+                    <hr>
+                `;
+                locationContainer.appendChild(bookItem);
+            });
+        })
+        .catch(err => console.error('無法載入書籍清單:', err));
+});
