@@ -58,3 +58,35 @@ button {
 .navbar a:hover {
     background-color: #575757;
 }
+.library-section {
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: #f9f9f9;
+}
+
+.library-header {
+    cursor: pointer;
+    font-size: 18px;
+    padding: 8px;
+    background-color: #ddd;
+    border-radius: 5px;
+}
+
+.library-header:hover {
+    background-color: #ccc;
+}
+
+.book-list {
+    margin: 10px 0;
+    padding-left: 20px;
+    list-style: none;
+    display: none; /* 預設隱藏書籍清單 */
+}
+.top-banner {
+    width: 100%;
+    max-height: 250px; /* 可根據需要調整 */
+    object-fit: cover;
+    display: block;
+}

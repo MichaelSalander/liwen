@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>漂書系統 - 借書/還書</title>
+    <title>漂書系統 - 借閱紀錄</title>
     <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
+    <img src="assets/img/790x250.jpg" alt="漂書系統" class="top-banner">
     <div class="navbar">
         <a href="index.html">🏠 總覽</a>
-        <a href="borrow.html">📖 借書/還書</a>
+        <a href="borrow.html">📖 借閱紀錄</a>
     </div>
 
     <div class="container">
-        <h1>漂書系統 - 借書/還書</h1>
-        <input type="text" id="isbn" placeholder="請輸入 ISBN">
-        <button id="borrowButton">📚 借書</button>
-        <button id="returnButton">🔄 還書</button>
+        <h1>漂書系統 - 借閱紀錄</h1>
         <div id="message"></div>
 
-        <h2>📌 最近 5 次借/還書紀錄</h2>
+        <h2>📌 最近 100 次借/還書紀錄</h2>
         <ul id="historyList"></ul>
     </div>
 
-    <script src="assets/js/borrow.js"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/history.js"></script> <!-- ✅ 替換為 history.js -->
+
 </body>
 </html>
