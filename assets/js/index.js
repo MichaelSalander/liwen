@@ -1,7 +1,11 @@
-
 document.addEventListener("DOMContentLoaded", function () {
     const container = document.getElementById("libraryContainer");
 
+    // 解析 URL 取得書籍 ID
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookId = urlParams.get("id");
+
+    // 取得書籍清單
     fetch(`${API_URL}?action=getBooks`)
         .then(response => response.json())
         .then(data => {
@@ -27,7 +31,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 const librarySection = document.createElement("div");
                 librarySection.classList.add("library-section");
 
-                // 🔹 館別標題（點擊展開/收起）
                 const libraryHeader = document.createElement("div");
                 libraryHeader.classList.add("library-header");
                 libraryHeader.innerHTML = `<strong>${libraryName}</strong>（共 ${libraries[libraryName].length} 本書） 📂`;
@@ -36,23 +39,22 @@ document.addEventListener("DOMContentLoaded", function () {
                     bookList.style.display = (bookList.style.display === "none") ? "block" : "none";
                 });
 
-                // 🔹 書籍清單（預設隱藏）
                 const bookList = document.createElement("ul");
                 bookList.classList.add("book-list");
                 bookList.style.display = "none";
 
                 libraries[libraryName].forEach(book => {
                     const bookItem = document.createElement("li");
+                    bookItem.setAttribute("data-id", book.id);
 
                     // **檢查是否為借閱中**
                     let actionButton;
                     if (book.location === "借閱中") {
-                        actionButton = `<button onclick="returnBook('${book.isbn}', '${book.title}', '${libraryName}')">🔄 還書</button>`;
+                        actionButton = `<button class="borrow-btn" data-id="${book.id}" onclick="returnBook('${book.isbn}', '${book.title}', '${libraryName}')">🔄 還書</button>`;
                     } else {
-                        actionButton = `<button onclick="borrowBook('${book.isbn}', '${book.title}', '${libraryName}')">📖 借書</button>`;
+                        actionButton = `<button class="borrow-btn" data-id="${book.id}" onclick="borrowBook('${book.isbn}', '${book.title}', '${libraryName}')">📖 借書</button>`;
                     }
 
-                    // 🔹 檢查是否有圖書館連結
                     let libraryLinkHTML = "";
                     if (book.libraryLink && book.libraryLink.trim() !== "") {
                         libraryLinkHTML = `<br> <a href="${book.libraryLink}" target="_blank">📖 圖書館連結</a>`;
@@ -71,6 +73,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 librarySection.appendChild(bookList);
                 container.appendChild(librarySection);
             });
+
+            // **如果 URL 內有書籍 ID，則自動點擊借書按鈕**
+            if (bookId) {
+                console.log("🔍 取得的書籍 ID:", bookId);
+                setTimeout(() => {
+                    const borrowButton = document.querySelector(`.borrow-btn[data-id="${bookId}"]`);
+                    if (borrowButton) {
+                        console.log("🎯 找到借書按鈕，準備自動點擊！");
+                        borrowButton.click();
+                    } else {
+                        console.warn("⚠️ 未找到借書按鈕，請確認 HTML 結構");
+                    }
+                }, 1000);
+            }
         })
         .catch(err => {
             console.error("❌ API 載入錯誤:", err);
@@ -78,10 +94,9 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 });
 
-
 // 🔹 借書功能
 function borrowBook(isbn, title, location) {
-    const studentName = prompt("請輸入您的姓名來借書：");
+    const studentName = prompt("請輸入您的暱稱來借書(作為還書時輸入使用，避免被別人亂還書)：");
     if (!studentName) {
         alert("借書取消");
         return;
@@ -103,10 +118,10 @@ function borrowBook(isbn, title, location) {
     .then(response => response.json())
     .then(data => {
         console.log("📖 借書 API 回應:", data);
+
         if (data.success) {
-            alert(data.message);
-            // **📌 即時更新 UI**
-            updateBookStatusUI(isbn, "借閱中");
+            alert(data.message); // 📌 讓使用者確認成功
+            window.location.href = `success.html?action=borrow&name=${encodeURIComponent(studentName)}&title=${encodeURIComponent(title)}&isbn=${isbn}`;
         } else {
             alert(`❌ 借書失敗: ${data.message}`);
         }
@@ -117,20 +132,10 @@ function borrowBook(isbn, title, location) {
     });
 }
 
-libraries[libraryName].forEach(book => {
-    const bookItem = document.createElement("li");
 
-    // 借書按鈕
-    const borrowButton = `<button onclick="borrowBook('${book.isbn}', '${book.title}', '${libraryName}')">📖 借書</button>`;
 
-    bookItem.innerHTML = `
-        <strong>${book.title}</strong> - ${book.author}
-        <br> ISBN: ${book.isbn} | 贈書者: ${book.donor}
-        <br> ${borrowButton}
-    `;
-    bookList.appendChild(bookItem);
-});
 
+// 🔹 更新 UI 書籍狀態
 function updateBookStatusUI(isbn, newLocation) {
     console.log(`🔄 更新 UI: ISBN=${isbn}，新地點=${newLocation}`);
 
@@ -140,13 +145,11 @@ function updateBookStatusUI(isbn, newLocation) {
         return;
     }
 
-    // **📌 更新顯示的地點**
     const locationElement = bookItem.querySelector(".book-location");
     if (locationElement) {
         locationElement.textContent = `📍 地點：${newLocation}`;
     }
 
-    // **📌 替換按鈕**
     const actionButton = bookItem.querySelector("button");
     if (newLocation === "借閱中") {
         actionButton.textContent = "🔄 還書";

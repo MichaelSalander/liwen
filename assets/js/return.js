@@ -99,6 +99,9 @@ function returnBook(isbn, title, borrowedLocation) {
             if (data.success) {
                 alert(data.message);
                 updateBookStatusUI(isbn, returnLocation);
+
+                // 📌 成功後跳轉到 `success.html`
+                window.location.href = `success.html?action=return&title=${encodeURIComponent(title)}&isbn=${isbn}&returnLocation=${encodeURIComponent(returnLocation)}`;
             } else {
                 alert(`❌ 還書失敗: ${data.message}`);
             }
@@ -109,6 +112,7 @@ function returnBook(isbn, title, borrowedLocation) {
         });
     });
 }
+
 
 // 📌 綁定 `還書` 按鈕
 document.addEventListener("DOMContentLoaded", function () {

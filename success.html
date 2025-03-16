@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>操作成功</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            margin: 50px;
+        }
+        .success {
+            font-size: 24px;
+            color: green;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="success" id="successMessage">📖 操作成功！</h1>
+    <p id="details"></p>
+    <a class="button" href="index.html">回到書籍列表</a>
+
+    <script>
+        // 取得 URL 參數
+        const urlParams = new URLSearchParams(window.location.search);
+        const action = urlParams.get("action"); // borrow 或 return
+        const bookTitle = urlParams.get("title") || "未知書籍";
+        const bookIsbn = urlParams.get("isbn") || "未知 ISBN";
+        const returnLocation = urlParams.get("returnLocation") || "未知地點";
+
+        // 根據 action 顯示不同訊息
+        const successMessage = document.getElementById("successMessage");
+        const details = document.getElementById("details");
+
+        if (action === "borrow") {
+            successMessage.textContent = "📖 借書成功！";
+            details.innerHTML = `你成功借閱《${bookTitle}》 (ISBN: ${bookIsbn})`;
+        } else if (action === "return") {
+            successMessage.textContent = "📚 還書成功！";
+            details.innerHTML = `你已成功歸還《${bookTitle}》 (ISBN: ${bookIsbn})，歸還地點為 <strong>${returnLocation}</strong>`;
+        } else {
+            successMessage.textContent = "✅ 操作成功！";
+            details.innerHTML = "你的操作已成功完成！";
+        }
+    </script>
+</body>
+</html>
