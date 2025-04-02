@@ -1,155 +1,234 @@
-console.log("✅ return.js 已載入！");
+document.addEventListener("DOMContentLoaded", function () {
+    const container = document.getElementById("libraryContainer");
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookId = urlParams.get("id");
 
-// 📌 創建自訂彈出式視窗
-function createReturnLocationDialog(callback) {
-    // 移除舊的彈窗（防止重複）
-    const oldDialog = document.getElementById("returnDialog");
-    if (oldDialog) oldDialog.remove();
+    fetch(`${API_URL}?action=getBooks`)
+        .then(response => response.json())
+        .then(data => {
+            console.log("📚 書籍數據:", data);
+            container.innerHTML = "";
 
-    // 建立對話框
-    const dialog = document.createElement("dialog");
-    dialog.id = "returnDialog";
-    dialog.innerHTML = `
-        <form method="dialog">
-            <h3>請選擇還書地點</h3>
-            <label for="returnLocation">還書地點：</label>
-            <select id="returnLocation">
-                <option value="麗文書局">麗文書局</option>
-                <option value="達賢圖">達賢圖</option>
-                <option value="其他">其他</option>
-            </select>
-            <input type="text" id="customLocation" placeholder="請輸入還書地點" style="display: none;">
-            <br><br>
-            <button type="submit">確認</button>
-            <button type="button" id="cancelBtn">取消</button>
-        </form>
-    `;
-    
-    document.body.appendChild(dialog);
-    
-    const returnLocationSelect = dialog.querySelector("#returnLocation");
-    const customLocationInput = dialog.querySelector("#customLocation");
-    const cancelBtn = dialog.querySelector("#cancelBtn");
-
-    // 📌 監聽下拉選單變化，若選擇「其他」，顯示輸入框
-    returnLocationSelect.addEventListener("change", function () {
-        if (this.value === "其他") {
-            customLocationInput.style.display = "block";
-        } else {
-            customLocationInput.style.display = "none";
-            customLocationInput.value = "";
-        }
-    });
-
-    // 📌 處理取消按鈕
-    cancelBtn.addEventListener("click", function () {
-        dialog.close(); // 關閉彈窗
-        callback(null); // 回傳 null 表示取消
-    });
-
-    // 📌 處理確認按鈕
-    dialog.addEventListener("close", function () {
-        let returnLocation = returnLocationSelect.value;
-        if (returnLocation === "其他") {
-            returnLocation = customLocationInput.value.trim();
-            if (!returnLocation) {
-                alert("❌ 請輸入還書地點！");
+            if (!data || data.length === 0) {
+                container.innerHTML = "<p>❌ 沒有書籍資料</p>";
                 return;
             }
-        }
-        callback(returnLocation);
-    });
 
-    // 📌 顯示彈窗
-    dialog.showModal();
+            const libraries = {};
+            data.forEach(book => {
+                if (!libraries[book.location]) libraries[book.location] = [];
+                libraries[book.location].push(book);
+            });
+
+            Object.keys(libraries).forEach(libraryName => {
+                const librarySection = document.createElement("div");
+                librarySection.classList.add("library-section");
+
+                const libraryHeader = document.createElement("div");
+                libraryHeader.classList.add("library-header");
+                libraryHeader.innerHTML = `<strong>${libraryName}</strong>（共 ${libraries[libraryName].length} 本書） 📂`;
+                libraryHeader.addEventListener("click", function () {
+                    const bookList = this.nextElementSibling;
+                    bookList.style.display = (bookList.style.display === "none") ? "block" : "none";
+                });
+
+                const bookList = document.createElement("ul");
+                bookList.classList.add("book-list");
+                bookList.style.display = "none";
+
+                libraries[libraryName].forEach(book => {
+                    const bookItem = document.createElement("li");
+                    bookItem.setAttribute("data-id", book.id);
+                    bookItem.setAttribute("data-isbn", book.isbn);
+                    bookItem.setAttribute("data-title", book.title);
+
+                    let actionButton = "";
+                    if (book.location === "借閱中") {
+                        actionButton = `<button class="borrow-btn" data-id="${book.id}" onclick="returnBook('${book.isbn}', '${book.title}', '${libraryName}')">🔄 還書</button>`;
+                    } else if (book.location === "下落不明") {
+                        actionButton = `<span style="color: red;">⚠️ 無法操作（下落不明）</span>`;
+                    }else {
+                        actionButton = `<button class="borrow-btn" data-id="${book.id}" onclick="borrowBook('${book.isbn}', '${book.title}', '${libraryName}')">📖 借書</button>`;
+                    }
+
+                    const libraryLinkHTML = (book.libraryLink && book.libraryLink.trim() !== "") ?
+                        `<br> <a href="${book.libraryLink}" target="_blank">📖 圖書館連結</a>` : "";
+
+                    bookItem.innerHTML = `
+                        <strong>${book.title}</strong> - ${book.author}
+                        <br> ISBN: ${book.isbn} | 贈書者: ${book.donor}
+                        ${libraryLinkHTML}
+                        <br> ${actionButton}
+                    `;
+                    bookList.appendChild(bookItem);
+                });
+
+                librarySection.appendChild(libraryHeader);
+                librarySection.appendChild(bookList);
+                container.appendChild(librarySection);
+            });
+
+            if (bookId) {
+                console.log("🔍 取得的書籍 ID:", bookId);
+                setTimeout(() => {
+                    const borrowButton = document.querySelector(`.borrow-btn[data-id="${bookId}"]`);
+                    if (borrowButton) {
+                        console.log("🎯 找到借書按鈕，準備自動點擊！");
+                        borrowButton.click();
+                    } else {
+                        console.warn("⚠️ 未找到借書按鈕，請確認 HTML 結構");
+                    }
+                }, 1000);
+            }
+        })
+        .catch(err => {
+            console.error("❌ API 載入錯誤:", err);
+            container.innerHTML = `<p>❌ API 載入失敗，請檢查 API</p>`;
+        });
+});
+
+// ✅ 借書功能
+function borrowBook(isbn, title, location) {
+    const studentName = prompt("請輸入您的暱稱來借書：");
+    if (!studentName) {
+        alert("借書取消");
+        return;
+    }
+
+    fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+            action: "borrowBook",
+            isbn: isbn,
+            title: title,
+            location: location,
+            studentName: studentName
+        })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = `success.html?action=borrow&name=${encodeURIComponent(studentName)}&title=${encodeURIComponent(title)}&isbn=${isbn}`;
+            } else {
+                alert(`❌ 借書失敗: ${data.message}`);
+            }
+        })
+        .catch(err => {
+            console.error("❌ 借書錯誤:", err);
+            alert("❌ 借書失敗，請稍後再試");
+        });
 }
 
-// 📌 還書函式
+// ✅ 還書功能（含動態館別選單）
+// ✅ 還書主函式（含跳轉 success.html）
 function returnBook(isbn, title, borrowedLocation) {
-    console.log(`📚 準備還書: ISBN=${isbn}, 書名=${title}, 借出地點=${borrowedLocation}`);
-
     if (!isbn) {
         alert("❌ ISBN 不能為空！");
         return;
     }
 
-    // 彈出還書地點選擇視窗
-    createReturnLocationDialog(function(returnLocation) {
-        if (!returnLocation) {
-            alert("❌ 取消還書");
-            return;
-        }
+    // 從書籍資料中取得所有有效館別
+    fetch(`${API_URL}?action=getBooks`)
+        .then(res => res.json())
+        .then(books => {
+            const uniqueLocations = [...new Set(
+                books.map(book => book.location)
+                     .filter(loc => loc && loc !== "借閱中" && loc !== "下落不明")
+            )];
 
-        console.log(`📚 送出還書請求: ISBN=${isbn}, 書名=${title}, 借出地點=${borrowedLocation}, 還書地點=${returnLocation}`);
+            createReturnLocationDialog(uniqueLocations, function(returnLocation) {
+                if (!returnLocation) {
+                    alert("❌ 還書已取消");
+                    return;
+                }
 
-        fetch(API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({
-                action: "returnBook",
-                isbn: isbn,
-                title: title,
-                borrowedLocation: borrowedLocation,
-                returnLocation: returnLocation
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log("📚 還書 API 回應:", data);
-            if (data.success) {
-                alert(data.message);
-                updateBookStatusUI(isbn, returnLocation);
-
-                // 📌 成功後跳轉到 `success.html`
-                window.location.href = `success.html?action=return&title=${encodeURIComponent(title)}&isbn=${isbn}&returnLocation=${encodeURIComponent(returnLocation)}`;
-            } else {
-                alert(`❌ 還書失敗: ${data.message}`);
-            }
-        })
-        .catch(err => {
-            console.error("❌ 還書錯誤:", err);
-            alert("❌ 還書失敗，請稍後再試");
+                fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: new URLSearchParams({
+                        action: "returnBook",
+                        isbn: isbn,
+                        title: title,
+                        borrowedLocation: borrowedLocation,
+                        returnLocation: returnLocation
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateBookStatusUI(isbn, returnLocation);
+                        window.location.href = `success.html?action=return&title=${encodeURIComponent(title)}&isbn=${isbn}&returnLocation=${encodeURIComponent(returnLocation)}`;
+                    } else {
+                        alert(`❌ 還書失敗: ${data.message}`);
+                    }
+                })
+                .catch(err => {
+                    console.error("❌ 還書錯誤:", err);
+                    alert("❌ 還書失敗，請稍後再試");
+                });
+            });
         });
-    });
 }
 
 
-// 📌 綁定 `還書` 按鈕
-document.addEventListener("DOMContentLoaded", function () {
-    console.log("✅ 綁定還書按鈕事件");
+// ✅ 還書選單（未選不會觸發還書）
+function createReturnLocationDialog(locations, callback) {
+    const oldDialog = document.getElementById("returnDialog");
+    if (oldDialog) oldDialog.remove();
 
-    document.querySelectorAll(".return-btn").forEach(btn => {
-        btn.addEventListener("click", function () {
-            const isbn = this.getAttribute("data-isbn") || "";
-            const title = this.getAttribute("data-title") || "";
-            const location = this.getAttribute("data-location") || "";
+    const dialog = document.createElement("dialog");
+    dialog.id = "returnDialog";
 
-            if (!isbn) {
-                console.error("❌ `data-isbn` 屬性不存在！");
-                alert("找不到 ISBN，請重新整理頁面！");
-                return;
-            }
+    const optionsHTML = ['<option value="" disabled selected>-- 請選擇還書地點 --</option>']
+        .concat(locations.map(loc => `<option value="${loc}">${loc}</option>`))
+        .join("");
 
-            returnBook(isbn, title, location);
-        });
+    dialog.innerHTML = `
+        <form id="returnForm">
+            <h3>請選擇還書地點</h3>
+            <select id="returnLocation" required>${optionsHTML}</select>
+            <br><br>
+            <button type="submit">確認</button>
+            <button type="button" id="cancelBtn">取消</button>
+        </form>
+    `;
+    document.body.appendChild(dialog);
+
+    const returnLocationSelect = dialog.querySelector("#returnLocation");
+    const cancelBtn = dialog.querySelector("#cancelBtn");
+    const form = dialog.querySelector("#returnForm");
+
+    // ✅ 點確認才觸發 callback（不讓 close 自動送出）
+    form.addEventListener("submit", function (e) {
+        e.preventDefault(); // 避免 dialog 自動關閉
+
+        const selected = returnLocationSelect.value;
+        if (!selected) {
+            alert("❌ 請選擇還書地點！");
+            return;
+        }
+
+        dialog.close();
+        callback(selected); // ✅ 使用者確實有選擇地點
     });
-});
+
+    cancelBtn.addEventListener("click", () => {
+        dialog.close();
+        callback(null); // ✅ 使用者點取消
+    });
+
+    dialog.showModal();
+}
+
+
+
+
+// ✅ 更新畫面上的書籍狀態
 function updateBookStatusUI(isbn, newLocation) {
-    console.log(`🔄 更新 UI: ISBN=${isbn}，新地點=${newLocation}`);
-
     const bookItem = document.querySelector(`[data-isbn="${isbn}"]`);
-    if (!bookItem) {
-        console.warn(`⚠️ 找不到 ISBN 為 ${isbn} 的書籍項目`);
-        return;
-    }
+    if (!bookItem) return;
 
-    // **📌 更新顯示的地點**
-    const locationElement = bookItem.querySelector(".book-location");
-    if (locationElement) {
-        locationElement.textContent = `📍 地點：${newLocation}`;
-    }
-
-    // **📌 替換按鈕**
     const actionButton = bookItem.querySelector("button");
     if (newLocation === "借閱中") {
         actionButton.textContent = "🔄 還書";
@@ -158,6 +237,4 @@ function updateBookStatusUI(isbn, newLocation) {
         actionButton.textContent = "📖 借書";
         actionButton.setAttribute("onclick", `borrowBook('${isbn}', '${bookItem.dataset.title}', '${newLocation}')`);
     }
-
-    console.log(`✅ 書籍 ${isbn} 已更新至 ${newLocation}`);
 }

@@ -51,7 +51,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     let actionButton;
                     if (book.location === "借閱中") {
                         actionButton = `<button class="borrow-btn" data-id="${book.id}" onclick="returnBook('${book.isbn}', '${book.title}', '${libraryName}')">🔄 還書</button>`;
-                    } else {
+                    } else if (book.location === "下落不明") {
+                        actionButton = `<span style="color: red;">⚠️ 無法操作（下落不明）</span>`;
+                    }else {
                         actionButton = `<button class="borrow-btn" data-id="${book.id}" onclick="borrowBook('${book.isbn}', '${book.title}', '${libraryName}')">📖 借書</button>`;
                     }
 

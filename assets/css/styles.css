@@ -90,3 +90,36 @@ button {
     object-fit: cover;
     display: block;
 }
+#introSection {
+    width: 100%;
+    margin: 40px auto 20px auto;
+    padding: 0 20px;
+    font-family: "Helvetica", "Microsoft JhengHei", sans-serif;
+    line-height: 1.6;
+    color: #333;
+  }
+  
+  .intro-image {
+    width: 100%;
+    display: block;
+    margin: 0 auto 20px auto;
+    border-radius: 8px;
+  }
+  
+  #introSection h2, #introSection h3 {
+    color: #2c3e50;
+  }
+  
+  #introSection ol {
+    margin-left: 20px;
+    padding-left: 10px;
+  }
+  #introSection ul {
+    list-style: none;
+    padding-left: 0;
+  }
+  
+  #introSection li {
+    margin-bottom: 10px;
+  }
+  
