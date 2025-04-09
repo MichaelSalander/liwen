@@ -122,4 +122,35 @@ button {
   #introSection li {
     margin-bottom: 10px;
   }
+  .full-width-link {
+    width: 100%;
+    background: linear-gradient(to right, #d0e9f7, #fefefe);
+    text-align: center;
+    padding: 30px 0;
+    font-size: 2em;
+    font-weight: bold;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+  }
+  
+  .full-width-link a {
+    text-decoration: none;
+    color: #006699;
+    transition: color 0.3s ease;
+  }
+  
+  .full-width-link a:hover {
+    color: #003355;
+    text-decoration: underline;
+  }
+  .loading-message {
+    height: 40vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: #444;
+  }
   
